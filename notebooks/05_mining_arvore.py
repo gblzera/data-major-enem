@@ -17,10 +17,29 @@
 # COMMAND ----------
 
 # MAGIC %md
+# MAGIC ## 0. Atualiza o pyarrow (necessário para ler o Parquet gravado pelo Spark)
+# MAGIC O Parquet das camadas 02-04 é gravado pelo Spark e traz um `LogicalType` que a versão de
+# MAGIC pyarrow do cluster não reconhece (`OSError: Metadata contains Thrift LogicalType that is not
+# MAGIC recognized`). Atualizar o pyarrow corrige a leitura via `awswrangler` (que usa as credenciais
+# MAGIC do Databricks Secrets). O `%pip` reinicia o Python automaticamente — rode esta célula primeiro.
+
+# COMMAND ----------
+
+# MAGIC %pip install -U pyarrow
+
+# COMMAND ----------
+
+dbutils.library.restartPython()
+
+# COMMAND ----------
+
+# MAGIC %md
 # MAGIC ## 1. Setup e carga do dataset (Parquet consolidado)
 
 # COMMAND ----------
 
+import boto3
+import awswrangler as wr
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -50,11 +69,12 @@ NOMES = {
 }
 NAO_SEI = {'Q001': 'H', 'Q002': 'H', 'Q003': 'F', 'Q004': 'F'}
 
-# Lê o Parquet com Spark — o mesmo motor que gravou as camadas (02-04). Evita o erro
-# "Thrift LogicalType that is not recognized" do pyarrow/awswrangler ao ler Parquet
-# escrito pelo Spark. .toPandas() traz ao driver para a mineração com scikit-learn
-# (mesmo volume que o awswrangler traria). As credenciais S3 vêm da config do cluster.
-df = spark.read.parquet("s3://enem-data-lake-gblzera/parquet/enem/").toPandas()
+AWS_ACCESS_KEY = dbutils.secrets.get(scope="aws-credentials", key="access-key")
+AWS_SECRET_KEY = dbutils.secrets.get(scope="aws-credentials", key="secret-key")
+boto3.setup_default_session(aws_access_key_id=AWS_ACCESS_KEY,
+                            aws_secret_access_key=AWS_SECRET_KEY, region_name="sa-east-1")
+
+df = wr.s3.read_parquet(path="s3://enem-data-lake-gblzera/parquet/enem/", dataset=True)
 df['Q005'] = df['Q005'].astype(int)
 df['NOTA_MEDIA'] = df['NOTA_MEDIA'].astype('float32')
 print(f"Registros: {df.shape[0]:,} | Colunas: {df.shape[1]}")
