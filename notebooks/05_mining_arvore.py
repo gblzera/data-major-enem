@@ -74,6 +74,9 @@ qs = [q for q in Q_COLS if q != 'Q005']
 dfs = df.copy()
 for q in qs:
     s = dfs[q].astype(object)
+    # sentinela de ausência da Silver ("Não informado") → NaN, para não virar um
+    # nível ordinal espúrio no meio da escala (capital "N" ordena entre as letras)
+    s = s.where(s != "Não informado", other=np.nan)
     if q in NAO_SEI:
         s = s.where(s != NAO_SEI[q], other=np.nan)
     dfs[q] = pd.Series(pd.Categorical(s, ordered=True).codes, index=dfs.index).replace(-1, np.nan)
@@ -108,15 +111,25 @@ plt.show()
 
 features = [c for c in Q_COLS if c != 'Q005'] + ['Q005']
 X = df[features].copy()
-mediana = df['NOTA_MEDIA'].median()
-y = (df['NOTA_MEDIA'] >= mediana).astype(int)
-print(f"Mediana da nota: {mediana:.1f}")
-print(f"Distribuição da target:\n{y.value_counts(normalize=True).round(3)}")
+
+# Fonte única da verdade: consome a TARGET já engenheirada na Gold (03_transform_gold),
+# em vez de recalcular a mediana aqui — evita duas definições de corte no mesmo pipeline.
+y = df['TARGET'].astype(int)
+# Mediana recalculada apenas para conferência/relatório (em float64, deve bater com a Gold ≈ 536,0).
+mediana = df['NOTA_MEDIA'].astype('float64').median()
+print(f"Mediana da nota (conferência): {mediana:.1f}")
+print(f"Distribuição da target (da Gold):\n{y.value_counts(normalize=True).round(3)}")
 
 cat_cols = [c for c in Q_COLS if c != 'Q005']
+# sentinela de ausência da Silver ("Não informado") → NaN em todas as categóricas,
+# para o OrdinalEncoder não lhe atribuir um código ordinal no meio da escala
+X[cat_cols] = X[cat_cols].replace("Não informado", np.nan)
 for col, letra in NAO_SEI.items():
     X[col] = X[col].astype(object)
     X.loc[X[col] == letra, col] = np.nan
+# Q005 (numérica): sentinela -1 de ausência → NaN, espelhando o tratamento do Spearman
+# (DecisionTreeClassifier do scikit-learn ≥1.4 lida com NaN nativamente)
+X['Q005'] = X['Q005'].replace(-1, np.nan)
 encoder = OrdinalEncoder(handle_unknown='use_encoded_value', unknown_value=-1, encoded_missing_value=-1)
 X[cat_cols] = encoder.fit_transform(X[cat_cols])
 
@@ -206,8 +219,8 @@ plt.show()
 
 # COMMAND ----------
 
-print("REGRAS DE DECISÃO (primeiros níveis):\n")
-print(export_text(arvore, feature_names=[NOMES.get(c, c) for c in X.columns], max_depth=2))
+print("REGRAS DE DECISÃO (primeiros 3 níveis):\n")
+print(export_text(arvore, feature_names=[NOMES.get(c, c) for c in X.columns], max_depth=3))
 
 # COMMAND ----------
 
