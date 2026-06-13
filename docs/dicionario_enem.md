@@ -43,6 +43,6 @@ Os códigos abaixo representam **ausência de informação** (não um nível ord
 | Q003 | F |
 | Q004 | F |
 
-## Trava de sanidade
+## Verificação de consistência
 
-O pipeline de mineração inclui uma validação automática que confere o número de categorias reais de cada variável contra o esperado, detectando desalinhamentos de dicionário antes de qualquer análise.
+A correção do mapeamento acima partiu de uma **verificação cruzada manual** com os próprios dados — a presença da categoria "F" em Q003/Q004, impossível sob o mapeamento preliminar, denunciou o desalinhamento. Uma **trava automática** que confira o número de categorias reais de cada variável contra o esperado, detectando desalinhamentos antes da análise, ainda **não** está implementada no notebook de mineração — é uma melhoria prevista.

@@ -80,13 +80,14 @@ Script automatizado baixa os arquivos `.zip` de cada edição do INEP e os carre
 ### 3. Transform — Gold
 - `NOTA_MEDIA`: média aritmética das 5 provas
 - `TARGET`: binária — `1` se `NOTA_MEDIA ≥ mediana` (536,0), senão `0`. Classes balanceadas (50,1% / 49,9%)
-- Encoding ordinal das variáveis categóricas (preserva a ordem natural)
+- Questionário mantido em forma original — o encoding **não** é feito aqui, e sim na etapa de mineração (mantém a Gold legível e flexível a diferentes técnicas de codificação)
 
 ### 4. Load
 Consolidação em Parquet único particionado por ano (59 MB) e carga complementar em PostgreSQL.
 
 ### 5. Mineração
 - **Estatística:** correlação de Spearman de cada variável com a nota
+- **Codificação:** encoding ordinal das variáveis categóricas (preserva a ordem natural) — aplicado aqui, não na Gold
 - **Modelo:** Árvore de Decisão (critério de entropia, `max_depth=6`, classes balanceadas), split estratificado 70/30
 
 ---
