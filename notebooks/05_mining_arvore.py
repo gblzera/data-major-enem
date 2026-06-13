@@ -21,8 +21,6 @@
 
 # COMMAND ----------
 
-import boto3
-import awswrangler as wr
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -52,12 +50,11 @@ NOMES = {
 }
 NAO_SEI = {'Q001': 'H', 'Q002': 'H', 'Q003': 'F', 'Q004': 'F'}
 
-AWS_ACCESS_KEY = dbutils.secrets.get(scope="aws-credentials", key="access-key")
-AWS_SECRET_KEY = dbutils.secrets.get(scope="aws-credentials", key="secret-key")
-boto3.setup_default_session(aws_access_key_id=AWS_ACCESS_KEY,
-                            aws_secret_access_key=AWS_SECRET_KEY, region_name="sa-east-1")
-
-df = wr.s3.read_parquet(path="s3://enem-data-lake-gblzera/parquet/enem/", dataset=True)
+# Lê o Parquet com Spark — o mesmo motor que gravou as camadas (02-04). Evita o erro
+# "Thrift LogicalType that is not recognized" do pyarrow/awswrangler ao ler Parquet
+# escrito pelo Spark. .toPandas() traz ao driver para a mineração com scikit-learn
+# (mesmo volume que o awswrangler traria). As credenciais S3 vêm da config do cluster.
+df = spark.read.parquet("s3://enem-data-lake-gblzera/parquet/enem/").toPandas()
 df['Q005'] = df['Q005'].astype(int)
 df['NOTA_MEDIA'] = df['NOTA_MEDIA'].astype('float32')
 print(f"Registros: {df.shape[0]:,} | Colunas: {df.shape[1]}")
