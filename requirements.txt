@@ -1,0 +1,24 @@
+# Dependências do projeto Data Major
+# Instalação no Databricks via %pip install -r requirements.txt
+# (ou pip install -r requirements.txt em ambiente local)
+
+# Engenharia de dados / AWS
+boto3>=1.34
+awswrangler>=3.5
+requests>=2.31
+
+# Processamento (já presente no runtime do Databricks; listado para ambiente local)
+pyspark>=3.5
+
+# Mineração e estatística
+scikit-learn>=1.4
+scipy>=1.11
+pandas>=2.0
+numpy>=1.24
+
+# Visualização
+matplotlib>=3.7
+seaborn>=0.13
+
+# Conector PostgreSQL (carga Load — opcional)
+psycopg2-binary>=2.9

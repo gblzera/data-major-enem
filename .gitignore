@@ -1,0 +1,33 @@
+# ─── Credenciais e segredos — NUNCA commitar ───
+*.env
+.env
+secrets.json
+credentials.json
+*aws_credentials*
+*.pem
+*.key
+*token*
+
+# ─── Python ───
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+.venv/
+venv/
+env/
+
+# ─── Dados (microdados são pesados e públicos no INEP — não versionar) ───
+*.csv
+*.parquet
+*.zip
+data/
+datasets/
+
+# ─── Sistema operacional ───
+.DS_Store
+Thumbs.db
+
+# ─── IDEs e editores ───
+.vscode/
+.idea/
+*.swp

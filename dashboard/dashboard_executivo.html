@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Data Major — Painel Executivo | Desempenho no ENEM</title>
+<style>
+  :root{
+    --deep:#065A82; --teal:#1C7293; --mid:#21295C; --ice:#9AD1D4;
+    --ink:#1B2A3A; --gray:#5B6B7B; --light:#F4F8FA; --border:#DCE6EC;
+    --rust:#B85042; --amber:#C8A24B; --green:#2C7A7B; --white:#fff;
+    --bg:#EEF3F6;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:var(--bg); color:var(--ink); line-height:1.5;
+    padding:32px 24px;
+  }
+  .wrap{max-width:1180px; margin:0 auto;}
+
+  /* ---- Header ---- */
+  header{
+    background:linear-gradient(135deg,var(--mid) 0%,var(--deep) 100%);
+    border-radius:18px; padding:34px 38px; color:var(--white);
+    box-shadow:0 10px 30px rgba(6,90,130,.22); position:relative; overflow:hidden;
+  }
+  header::after{
+    content:""; position:absolute; right:-60px; top:-60px; width:260px; height:260px;
+    background:radial-gradient(circle,rgba(154,209,212,.18),transparent 70%); border-radius:50%;
+  }
+  .eyebrow{font-size:13px; letter-spacing:3px; text-transform:uppercase; color:var(--ice); font-weight:700;}
+  header h1{font-size:30px; font-weight:800; margin:8px 0 4px; line-height:1.2;}
+  .question{font-size:17px; color:#D7EAEE; font-style:italic; max-width:780px; margin-top:10px;}
+  .meta{margin-top:18px; font-size:13px; color:var(--ice); display:flex; gap:22px; flex-wrap:wrap;}
+  .meta b{color:var(--white);}
+
+  /* ---- Answer banner ---- */
+  .answer{
+    background:var(--white); border-left:6px solid var(--deep); border-radius:14px;
+    padding:24px 30px; margin:22px 0; box-shadow:0 4px 18px rgba(27,42,58,.07);
+    display:flex; align-items:center; gap:22px;
+  }
+  .answer .tick{
+    flex:0 0 auto; width:54px; height:54px; border-radius:50%; background:var(--green);
+    display:flex; align-items:center; justify-content:center; color:#fff; font-size:28px; font-weight:700;
+  }
+  .answer h2{font-size:22px; color:var(--mid); font-weight:800; line-height:1.25;}
+  .answer p{color:var(--gray); font-size:14px; margin-top:4px;}
+
+  /* ---- KPI row ---- */
+  .kpis{display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:22px;}
+  .kpi{
+    background:var(--white); border-radius:14px; padding:22px 20px; text-align:center;
+    box-shadow:0 4px 16px rgba(27,42,58,.06); border-top:4px solid var(--teal);
+  }
+  .kpi .num{font-size:34px; font-weight:800; color:var(--deep); line-height:1;}
+  .kpi .lab{font-size:12.5px; color:var(--gray); margin-top:8px; text-transform:uppercase; letter-spacing:.6px;}
+  .kpi.alt{border-top-color:var(--deep);}
+  .kpi.alt .num{color:var(--mid);}
+
+  /* ---- Grid of panels ---- */
+  .grid{display:grid; grid-template-columns:1fr 1fr; gap:22px; margin-bottom:22px;}
+  .panel{
+    background:var(--white); border-radius:16px; padding:26px 28px;
+    box-shadow:0 4px 18px rgba(27,42,58,.07);
+  }
+  .panel h3{font-size:16px; color:var(--deep); font-weight:800; margin-bottom:4px;}
+  .panel .sub{font-size:12.5px; color:var(--gray); margin-bottom:20px;}
+
+  /* ---- SVG bar charts: shared ---- */
+  .barrow{display:flex; align-items:center; gap:12px; margin-bottom:13px;}
+  .barrow .name{flex:0 0 132px; font-size:12.5px; color:var(--ink); text-align:right;}
+  .barrow .track{flex:1; background:var(--light); border-radius:6px; height:24px; position:relative; overflow:hidden;}
+  .barrow .fill{height:100%; border-radius:6px; display:flex; align-items:center; justify-content:flex-end; padding-right:8px;
+    color:#fff; font-size:11.5px; font-weight:700; transition:width 1s ease;}
+
+  /* metric bars */
+  .m1{background:var(--teal);} .m2{background:var(--deep);}
+
+  /* factor bars (horizontal ranking) */
+  .factor .fill{background:linear-gradient(90deg,var(--teal),var(--deep));}
+  .factor .name{flex-basis:150px;}
+
+  /* ---- Rules cascade ---- */
+  .rules{display:flex; flex-direction:column; gap:0;}
+  .rule{display:flex; align-items:flex-start; gap:16px; padding:14px 0; position:relative;}
+  .rule:not(:last-child)::after{
+    content:""; position:absolute; left:21px; top:46px; bottom:-2px; width:2px; background:var(--border);
+  }
+  .rule .dot{
+    flex:0 0 auto; width:44px; height:44px; border-radius:12px; color:#fff; font-weight:800; font-size:13px;
+    display:flex; align-items:center; justify-content:center; z-index:1;
+  }
+  .rule .d1{background:var(--deep);} .rule .d2{background:var(--teal);} .rule .d3{background:var(--green);}
+  .rule .body h4{font-size:15px; color:var(--ink); font-weight:800;}
+  .rule .body p{font-size:12.5px; color:var(--gray); margin-top:2px;}
+
+  /* ---- Insight / convergence callout ---- */
+  .insight{
+    background:linear-gradient(135deg,var(--mid),var(--deep)); color:#fff; border-radius:16px;
+    padding:26px 30px; margin-bottom:22px; display:flex; gap:20px; align-items:flex-start;
+  }
+  .insight .ic{flex:0 0 auto; width:46px; height:46px; border-radius:12px; background:rgba(154,209,212,.22);
+    display:flex; align-items:center; justify-content:center; font-size:24px;}
+  .insight h3{font-size:17px; color:var(--ice); margin-bottom:6px;}
+  .insight p{font-size:14px; color:#E4F1F3; line-height:1.6;}
+
+  /* ---- Footer ---- */
+  footer{text-align:center; font-size:12px; color:var(--gray); margin-top:8px;}
+  .legend{display:flex; gap:18px; justify-content:center; margin-top:14px; font-size:12px; color:var(--gray); flex-wrap:wrap;}
+  .legend span{display:inline-flex; align-items:center; gap:6px;}
+  .swatch{width:13px; height:13px; border-radius:3px; display:inline-block;}
+
+  @media (max-width:880px){
+    .kpis{grid-template-columns:repeat(2,1fr);} .grid{grid-template-columns:1fr;}
+    .barrow .name{flex-basis:96px;} .factor .name{flex-basis:104px;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="eyebrow">Projeto Data Major · IESB 2026</div>
+    <h1>Desempenho no ENEM &amp; condição socioeconômica</h1>
+    <div class="question">Pergunta de negócio: o perfil socioeconômico do candidato permite prever se sua nota fica acima ou abaixo da mediana — e quais fatores mais pesam?</div>
+    <div class="meta">
+      <span><b>7.261.194</b> candidatos</span>
+      <span><b>3 edições</b> (2021–2023)</span>
+      <span><b>Fonte:</b> microdados INEP</span>
+      <span><b>Técnica:</b> Árvore de Decisão</span>
+    </div>
+  </header>
+
+  <div class="answer">
+    <div class="tick">&#10003;</div>
+    <div>
+      <h2>Sim — o perfil socioeconômico prevê o desempenho, mas não o determina.</h2>
+      <p>O modelo separa candidatos acima e abaixo da mediana com AUC de 0,747 (bem acima do acaso). Renda, acesso a computador e escolaridade dos pais lideram — mas restam ~31% que o perfil social não explica.</p>
+    </div>
+  </div>
+
+  <div class="kpis">
+    <div class="kpi"><div class="num">68,5%</div><div class="lab">Acurácia do modelo</div></div>
+    <div class="kpi"><div class="num">0,747</div><div class="lab">AUC-ROC (0,50 = acaso)</div></div>
+    <div class="kpi alt"><div class="num">536,0</div><div class="lab">Mediana da nota (corte)</div></div>
+    <div class="kpi alt"><div class="num">3</div><div class="lab">Fatores-chave decisivos</div></div>
+  </div>
+
+  <div class="grid">
+    <!-- Métricas -->
+    <div class="panel">
+      <h3>Desempenho do modelo</h3>
+      <div class="sub">Conjunto de teste · 2.178.359 candidatos (30%)</div>
+      <div class="barrow"><div class="name">Acurácia</div><div class="track"><div class="fill m1" style="width:68.5%">0,685</div></div></div>
+      <div class="barrow"><div class="name">Precisão</div><div class="track"><div class="fill m1" style="width:69.2%">0,692</div></div></div>
+      <div class="barrow"><div class="name">Recall</div><div class="track"><div class="fill m1" style="width:67.1%">0,671</div></div></div>
+      <div class="barrow"><div class="name">F1-Score</div><div class="track"><div class="fill m1" style="width:68.1%">0,681</div></div></div>
+      <div class="barrow"><div class="name">AUC-ROC</div><div class="track"><div class="fill m2" style="width:74.7%">0,747</div></div></div>
+      <div class="legend">
+        <span><i class="swatch" style="background:var(--teal)"></i> métricas de acerto</span>
+        <span><i class="swatch" style="background:var(--deep)"></i> separação entre classes</span>
+      </div>
+    </div>
+
+    <!-- Ranking de fatores -->
+    <div class="panel">
+      <h3>Fatores que mais influenciam a nota</h3>
+      <div class="sub">Força de associação (Spearman + importância na árvore)</div>
+      <div class="barrow factor"><div class="name">Renda da família</div><div class="track"><div class="fill" style="width:100%">decisivo</div></div></div>
+      <div class="barrow factor"><div class="name">Computador em casa</div><div class="track"><div class="fill" style="width:84%">muito alto</div></div></div>
+      <div class="barrow factor"><div class="name">Escolaridade da mãe</div><div class="track"><div class="fill" style="width:71%">alto</div></div></div>
+      <div class="barrow factor"><div class="name">Escolaridade do pai</div><div class="track"><div class="fill" style="width:64%">alto</div></div></div>
+      <div class="barrow factor"><div class="name">Banheiros / infraestrutura</div><div class="track"><div class="fill" style="width:55%">moderado</div></div></div>
+      <div class="barrow factor"><div class="name">Carros na família</div><div class="track"><div class="fill" style="width:48%">moderado</div></div></div>
+    </div>
+  </div>
+
+  <!-- Regras + Convergência -->
+  <div class="grid">
+    <div class="panel">
+      <h3>Como o modelo decide</h3>
+      <div class="sub">Hierarquia de regras aprendida automaticamente</div>
+      <div class="rules">
+        <div class="rule">
+          <div class="dot d1">1ª</div>
+          <div class="body"><h4>Renda da família</h4><p>O primeiro e mais forte divisor. Define o ponto de partida da classificação.</p></div>
+        </div>
+        <div class="rule">
+          <div class="dot d2">2ª</div>
+          <div class="body"><h4>Acesso a computador</h4><p>Dentro de cada faixa de renda, ter computador é o que mais diferencia.</p></div>
+        </div>
+        <div class="rule">
+          <div class="dot d3">3ª</div>
+          <div class="body"><h4>Escolaridade dos pais</h4><p>Escolaridade da mãe pesa mais na renda baixa; a do pai, na renda alta.</p></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel" style="display:flex;flex-direction:column;justify-content:center;background:var(--light);">
+      <h3 style="color:var(--mid)">Leitura para decisão</h3>
+      <div class="sub">O que estes números significam na prática</div>
+      <p style="font-size:14px;color:var(--ink);line-height:1.65;">
+        A previsibilidade de <b>~69%</b> não é um limite do modelo — é o quanto o <b>perfil socioeconômico sozinho</b>
+        consegue explicar. Os <b>~31% restantes</b> dependem de fatores fora do perfil social (escola, trajetória, esforço).
+      </p>
+      <p style="font-size:14px;color:var(--ink);line-height:1.65;margin-top:12px;">
+        Para a tomada de decisão, isso indica <b>onde a intervenção tem maior retorno previsível</b>: ações dirigidas
+        a candidatos de <b>baixa renda e sem acesso a computador</b> atacam exatamente os dois maiores divisores do desempenho.
+      </p>
+    </div>
+  </div>
+
+  <div class="insight">
+    <div class="ic">&#9733;</div>
+    <div>
+      <h3>Por que confiar no resultado</h3>
+      <p>Duas técnicas independentes — a correlação estatística (Spearman) e a árvore de decisão (mineração) — apontaram
+      <b>exatamente os mesmos fatores</b> no topo: renda, computador e escolaridade. Quando métodos diferentes convergem,
+      o achado deixa de ser efeito de uma escolha técnica e passa a ser um padrão real nos dados.</p>
+    </div>
+  </div>
+
+  <footer>
+    Painel executivo · Projeto Data Major · Centro Universitário IESB · 2026 &nbsp;·&nbsp;
+    Equipe: Davi · Bruno · Vinícius · Gabriel
+  </footer>
+
+</div>
+</body>
+</html>
