@@ -17,15 +17,18 @@
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ## 0. Atualiza o pyarrow (necessário para ler o Parquet gravado pelo Spark)
-# MAGIC O Parquet das camadas 02-04 é gravado pelo Spark e traz um `LogicalType` que a versão de
-# MAGIC pyarrow do cluster não reconhece (`OSError: Metadata contains Thrift LogicalType that is not
-# MAGIC recognized`). Atualizar o pyarrow corrige a leitura via `awswrangler` (que usa as credenciais
-# MAGIC do Databricks Secrets). O `%pip` reinicia o Python automaticamente — rode esta célula primeiro.
+# MAGIC ## 0. Dependências (pyarrow recente + awswrangler, sem quebrar o numpy)
+# MAGIC O Parquet das camadas 02-04 é gravado pelo Spark e traz um `LogicalType` que o pyarrow antigo do
+# MAGIC runtime (14.x) não reconhece (`Thrift LogicalType that is not recognized`). Instalamos um pyarrow
+# MAGIC recente e o `awswrangler` (que não vem no runtime e lê o S3 com as credenciais do Secrets).
+# MAGIC
+# MAGIC > **Atenção ao numpy:** um `pip install -U pyarrow` puxa `numpy>=2`, que quebra o pandas do runtime
+# MAGIC > (`numpy.dtype size changed`). O `awswrangler` exige `numpy>=1.26`, então fixamos a faixa segura
+# MAGIC > **`numpy>=1.26,<2`**. Rode esta célula primeiro; o Python reinicia logo em seguida.
 
 # COMMAND ----------
 
-# MAGIC %pip install -U pyarrow
+# MAGIC %pip install awswrangler "pyarrow>=17,<25" "numpy>=1.26,<2"
 
 # COMMAND ----------
 

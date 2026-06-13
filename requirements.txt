@@ -7,7 +7,8 @@ boto3>=1.34
 awswrangler>=3.5
 requests>=2.31
 # pyarrow recente: lê Parquet gravado por Spark recente (evita o erro de Thrift LogicalType)
-pyarrow>=14
+# No Databricks, instalar junto com numpy>=1.26,<2 (numpy 2 quebra o pandas do runtime)
+pyarrow>=17,<25
 
 # Processamento (já presente no runtime do Databricks; listado para ambiente local)
 pyspark>=3.5
