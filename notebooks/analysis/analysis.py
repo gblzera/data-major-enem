@@ -145,8 +145,7 @@ else:
 # MAGIC |-------|-----------|----------------|
 # MAGIC | Escolaridade dos pais | Q001, Q002, Q003, Q004 | Literatura aponta forte correlação com desempenho escolar |
 # MAGIC | Renda / trabalho | Q005, Q006, Q007, Q008 | Indicadores diretos de condição socioeconômica |
-# MAGIC | Bens e acesso | Q009–Q024 | Proxy de capital econômico e cultural da família |
-# MAGIC | Tipo de escola | Q025 | Distingue ensino público de privado |
+# MAGIC | Bens e acesso | Q009–Q025 | Proxy de capital econômico e cultural da família (inclui Q024 computador, Q025 internet) |
 
 # COMMAND ----------
 

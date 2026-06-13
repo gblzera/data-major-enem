@@ -77,12 +77,12 @@ try:
 except:
     checks.append(("Python instalado", False, "Erro"))
 
-# 2. Verificar PySpark
+# 2. Verificar pandas (motor de processamento do projeto)
 try:
-    import pyspark
-    checks.append(("PySpark instalado", True, pyspark.__version__))
+    import pandas as _pd
+    checks.append(("pandas instalado", True, _pd.__version__))
 except ImportError:
-    checks.append(("PySpark instalado", False, "Não encontrado"))
+    checks.append(("pandas instalado", False, "Não encontrado"))
 
 # 3. Verificar boto3
 try:

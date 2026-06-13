@@ -143,7 +143,7 @@
 # MAGIC |-------|-------------|---------------------|--------|
 # MAGIC | **M1: Infraestrutura** | 28/03/2026 | Databricks, S3 e RDS configurados e acessíveis | ✅ |
 # MAGIC | **M2: Dados Bronze** | 04/04/2026 | Microdados 2021-2023 no S3 | ✅ |
-# MAGIC | **M3: Dados Silver** | 11/04/2026 | Dados limpos em Parquet | ✅ |
+# MAGIC | **M3: Dados Silver** | 11/04/2026 | Dados limpos em CSV | ✅ |
 # MAGIC | **M4: Dados Gold** | 18/04/2026 | Features prontas para ML | ✅ |
 # MAGIC | **M5: Load Completo** | 25/04/2026 | Dados no RDS e Parquet final | ✅ |
 # MAGIC | **M6: Modelo Treinado** | 02/05/2026 | Métricas calculadas | ✅ |
