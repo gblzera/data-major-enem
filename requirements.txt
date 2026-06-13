@@ -10,12 +10,8 @@ requests>=2.31
 # No Databricks, instalar junto com numpy>=1.26,<2 (numpy 2 quebra o pandas do runtime)
 pyarrow>=17,<25
 
-# Processamento (já presente no runtime do Databricks; listado para ambiente local)
-pyspark>=3.5
-
-# Mineração e estatística
+# Mineração e estatística (motor é pandas; Spearman via pandas rank+corrwith, sem scipy)
 scikit-learn>=1.4
-scipy>=1.11
 pandas>=2.0
 numpy>=1.24
 
@@ -25,3 +21,4 @@ seaborn>=0.13
 
 # Conector PostgreSQL (carga Load — opcional)
 psycopg2-binary>=2.9
+sqlalchemy>=2.0

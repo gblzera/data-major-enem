@@ -41,7 +41,7 @@ INEP (.zip)  →  BRONZE      →  SILVER       →  GOLD            →  PARQUE
 - **Formato analítico:** Apache Parquet (colunar, comprimido) na camada de consumo
 - **Banco relacional:** PostgreSQL (RDS) — carga complementar
 - **Mineração / ML:** scikit-learn (Árvore de Decisão)
-- **Estatística:** SciPy (correlação de Spearman)
+- **Estatística:** correlação de Spearman via pandas (`rank` + `corrwith`)
 - **Versionamento:** Git + Databricks Repos
 
 ---

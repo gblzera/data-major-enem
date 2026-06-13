@@ -1,5 +1,5 @@
 # Databricks notebook source
-# MAGIC !pip install sqlalchemy
+# MAGIC %pip install psycopg2-binary sqlalchemy
 
 # COMMAND ----------
 

@@ -45,8 +45,8 @@ for ano in ANOS:
     # 2. TARGET boolean (1 bit de peso no Parquet)
     df_temp['TARGET'] = df_temp['TARGET'].astype('bool')
     
-    # 3. O SEGREDO: float16 corta o peso da coluna numérica pela metade!
-    df_temp['NOTA_MEDIA'] = df_temp['NOTA_MEDIA'].round(2).astype('float16')
+    # 3. float32 preserva a precisão real da nota (float16 arredondava a passos de 0,25–0,5)
+    df_temp['NOTA_MEDIA'] = df_temp['NOTA_MEDIA'].round(2).astype('float32')
     
     # Q005 cabe no menor inteiro possível (int8)
     df_temp['Q005'] = df_temp['Q005'].astype('int8')
@@ -75,7 +75,7 @@ print(registro.T)
 
 print("--- Iniciando gravação em formato Parquet no S3 ---")
 
-# RF-07: Carga Gold -> S3 Parquet (Snappy, particionado por year)
+# RF-07: Carga Gold -> S3 Parquet (zstd, particionado por year)
 parquet_path = f"s3://{BUCKET}/parquet/enem/"
 
 res = wr.s3.to_parquet(

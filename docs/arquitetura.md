@@ -51,5 +51,5 @@ Microdados do INEP carregados exatamente como obtidos, sem transformação. O `e
 - **Formato analítico:** Apache Parquet (camada de consumo)
 - **Banco relacional:** PostgreSQL (RDS)
 - **Mineração:** scikit-learn (Árvore de Decisão)
-- **Estatística:** SciPy (Spearman)
+- **Estatística:** correlação de Spearman via pandas (`rank` + `corrwith`)
 - **Credenciais:** Databricks Secrets (escopo `aws-credentials`)

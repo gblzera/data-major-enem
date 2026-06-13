@@ -143,7 +143,8 @@ X = df[features].copy()
 # Fonte única da verdade: consome a TARGET já engenheirada na Gold (03_transform_gold),
 # em vez de recalcular a mediana aqui — evita duas definições de corte no mesmo pipeline.
 y = df['TARGET'].astype(int)
-# Mediana recalculada apenas para conferência/relatório (em float64, deve bater com a Gold ≈ 536,0).
+# Mediana GLOBAL recalculada só como referência agregada (≈ 536,0) — NÃO é o corte da Gold,
+# que é por ANO (2021 ≈ 527,3 · 2022 ≈ 540,5 · 2023 ≈ 539,2).
 mediana = df['NOTA_MEDIA'].astype('float64').median()
 print(f"Mediana da nota (conferência): {mediana:.1f}")
 print(f"Distribuição da target (da Gold):\n{y.value_counts(normalize=True).round(3)}")
@@ -264,7 +265,7 @@ print(export_text(arvore, feature_names=[NOMES.get(c, c) for c in X.columns], ma
 # MAGIC %md
 # MAGIC ## 7. Conclusões parciais
 # MAGIC - **Fatores socioeconômicos se associam à nota** — renda, computador e infraestrutura lideram.
-# MAGIC - **Árvore atinge ~0,685 de acurácia / 0,747 AUC** — coerente com a literatura.
+# MAGIC - **Árvore atinge ~0,686 de acurácia / 0,749 AUC** — coerente com a literatura.
 # MAGIC - **A técnica entrega regras legíveis** — além de prever, explica.
 # MAGIC
 # MAGIC ### Próximos passos
