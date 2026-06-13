@@ -47,7 +47,6 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
-from scipy.stats import spearmanr
 from sklearn.tree import DecisionTreeClassifier, plot_tree, export_text
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import OrdinalEncoder
@@ -91,24 +90,33 @@ print(f"Anos: {sorted(df['year'].astype(str).unique().tolist())}")
 # COMMAND ----------
 
 qs = [q for q in Q_COLS if q != 'Q005']
-dfs = df.copy()
+todas = qs + ['Q005']
+dfs = df[todas + ['NOTA_MEDIA']].copy()
+
+# Sentinelas de ausência → NaN + códigos ordinais por coluna.
+# O "N" maiúsculo de "Não informado" ordenaria no meio das letras, então vira NaN.
 for q in qs:
     s = dfs[q].astype(object)
-    # sentinela de ausência da Silver ("Não informado") → NaN, para não virar um
-    # nível ordinal espúrio no meio da escala (capital "N" ordena entre as letras)
     s = s.where(s != "Não informado", other=np.nan)
     if q in NAO_SEI:
         s = s.where(s != NAO_SEI[q], other=np.nan)
-    dfs[q] = pd.Series(pd.Categorical(s, ordered=True).codes, index=dfs.index).replace(-1, np.nan)
-dfs['Q005'] = dfs['Q005'].replace(-1, np.nan).astype(float)
+    dfs[q] = pd.Categorical(s, ordered=True).codes
+dfs[qs] = dfs[qs].astype('float64').replace(-1.0, np.nan)
+dfs['Q005'] = dfs['Q005'].replace(-1, np.nan).astype('float64')
 
-res = []
-for q in qs + ['Q005']:
-    rho, pval = spearmanr(dfs[q], dfs['NOTA_MEDIA'], nan_policy='omit')
-    res.append({'variavel': q, 'fator': NOMES.get(q, q),
-                'spearman_rho': round(rho, 4), 'magnitude': abs(round(rho, 4))})
-spearman_df = pd.DataFrame(res).sort_values('magnitude', ascending=False)
-display(spearman_df)
+# Spearman = Pearson sobre os postos. rank() é vetorizado e corr() omite NaN par a par,
+# o que substitui ~25 chamadas lentas de scipy.spearmanr(nan_policy='omit') em 7,26M linhas
+# (de ~25 min para ~1 min) com o mesmo resultado.
+ranks = dfs[todas + ['NOTA_MEDIA']].rank()
+rho = ranks[todas].corrwith(ranks['NOTA_MEDIA'])
+spearman_df = (pd.DataFrame({'variavel': todas,
+                             'fator': [NOMES.get(q, q) for q in todas],
+                             'spearman_rho': [round(float(rho[q]), 4) for q in todas]})
+               .assign(magnitude=lambda d: d['spearman_rho'].abs())
+               .sort_values('magnitude', ascending=False)
+               .reset_index(drop=True))
+# display() falha no serverless (roteia pelo Spark); print evita isso
+print(spearman_df.to_string())
 
 # COMMAND ----------
 
@@ -141,11 +149,12 @@ print(f"Mediana da nota (conferência): {mediana:.1f}")
 print(f"Distribuição da target (da Gold):\n{y.value_counts(normalize=True).round(3)}")
 
 cat_cols = [c for c in Q_COLS if c != 'Q005']
-# sentinela de ausência da Silver ("Não informado") → NaN em todas as categóricas,
-# para o OrdinalEncoder não lhe atribuir um código ordinal no meio da escala
-X[cat_cols] = X[cat_cols].replace("Não informado", np.nan)
+# converte de 'category' para object antes de mascarar (evita o FutureWarning do
+# replace/where em dtype categórico) e zera o sentinela da Silver:
+# "Não informado" → NaN, para o OrdinalEncoder não lhe dar um código ordinal no meio da escala
+X[cat_cols] = X[cat_cols].astype(object)
+X[cat_cols] = X[cat_cols].where(X[cat_cols] != "Não informado")
 for col, letra in NAO_SEI.items():
-    X[col] = X[col].astype(object)
     X.loc[X[col] == letra, col] = np.nan
 # Q005 (numérica): sentinela -1 de ausência → NaN, espelhando o tratamento do Spearman
 # (DecisionTreeClassifier do scikit-learn ≥1.4 lida com NaN nativamente)
@@ -197,9 +206,16 @@ print(classification_report(y_test, y_pred, digits=4, target_names=['Abaixo', 'A
 
 fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 5))
 cm = confusion_matrix(y_test, y_pred)
-sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', ax=ax1,
-            xticklabels=['Abaixo', 'Acima'], yticklabels=['Abaixo', 'Acima'])
-ax1.set_title('Matriz de Confusão'); ax1.set_xlabel('Predito'); ax1.set_ylabel('Real')
+cm_norm = cm / cm.sum(axis=1, keepdims=True)   # % dentro de cada classe REAL (= recall por classe)
+# cada quadrante mostra o que significa + a contagem + o % da classe real (a diagonal é o recall)
+quad = [['Acertou\n"Abaixo"', 'Errou\n(disse "Acima")'],
+        ['Errou\n(disse "Abaixo")', 'Acertou\n"Acima"']]
+annot = [[f'{quad[i][j]}\n{cm[i, j]:,}\n({cm_norm[i, j]:.1%})' for j in range(2)] for i in range(2)]
+sns.heatmap(cm_norm, annot=annot, fmt='', cmap='Blues', cbar=False, ax=ax1,
+            xticklabels=['Previu Abaixo', 'Previu Acima'],
+            yticklabels=['Real Abaixo', 'Real Acima'], annot_kws={'fontsize': 10})
+ax1.set_title('Matriz de Confusão (% dentro de cada classe real)')
+ax1.set_xlabel('Classe prevista'); ax1.set_ylabel('Classe real')
 
 fpr, tpr, _ = roc_curve(y_test, y_proba)
 ax2.plot(fpr, tpr, color='steelblue', linewidth=2, label=f"AUC = {metricas['AUC-ROC']:.3f}")
@@ -226,7 +242,8 @@ plt.title('Variáveis mais importantes para a Árvore de Decisão (Top 10)', fon
 plt.xlabel('Importância')
 plt.tight_layout()
 plt.show()
-display(imp)
+# display() falha no serverless (roteia pelo Spark); print evita isso
+print(imp.to_string())
 
 # COMMAND ----------
 
