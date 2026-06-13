@@ -10,7 +10,7 @@ Pipeline completo de Engenharia e Mineração de Dados sobre os microdados do EN
 
 > O perfil socioeconômico do candidato permite prever se sua nota fica acima ou abaixo da mediana? E quais fatores mais pesam nesse resultado?
 
-**Resposta:** sim, é possível prever (AUC-ROC de 0,747), mas a condição socioeconômica não determina o desempenho por completo. Renda, acesso a computador e escolaridade dos pais lideram — confirmados por duas técnicas independentes (correlação de Spearman e árvore de decisão).
+**Resposta:** sim, é possível prever (AUC-ROC de 0,749), mas a condição socioeconômica não determina o desempenho por completo. Renda, acesso a computador e escolaridade dos pais lideram — confirmados por duas técnicas independentes (correlação de Spearman e árvore de decisão).
 
 ---
 
@@ -79,7 +79,7 @@ Script automatizado baixa os arquivos `.zip` de cada edição do INEP e os carre
 
 ### 3. Transform — Gold
 - `NOTA_MEDIA`: média aritmética das 5 provas
-- `TARGET`: binária — `1` se `NOTA_MEDIA ≥ mediana` (536,0), senão `0`. Classes balanceadas (50,1% / 49,9%)
+- `TARGET`: binária — `1` se `NOTA_MEDIA ≥ mediana` (536,0), senão `0`. Classes balanceadas (≈ 50% / 50%)
 - Questionário mantido em forma original — o encoding **não** é feito aqui, e sim na etapa de mineração (mantém a Gold legível e flexível a diferentes técnicas de codificação)
 
 ### 4. Load
@@ -98,11 +98,11 @@ Métricas da Árvore de Decisão no conjunto de teste (2.178.359 registros):
 
 | Métrica | Valor |
 |---------|-------|
-| Acurácia | 0,685 |
+| Acurácia | 0,686 |
 | Precisão | 0,692 |
-| Recall | 0,671 |
-| F1-Score | 0,681 |
-| AUC-ROC | 0,747 |
+| Recall | 0,672 |
+| F1-Score | 0,682 |
+| AUC-ROC | 0,749 |
 
 **Hierarquia de fatores aprendida pela árvore:** Renda da família → Acesso a computador → Escolaridade dos pais (mãe pesa mais na renda baixa; pai na renda alta).
 
